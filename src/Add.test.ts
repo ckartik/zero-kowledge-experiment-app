@@ -74,4 +74,28 @@ describe('Add', () => {
     const updatedNum = zkAppInstance.num.get();
     expect(updatedNum).toEqual(Field(3));
   });
+
+  it.only('correctly determines lt condition', async () => {
+    const zkAppInstance = new Add(zkAppAddress);
+    await localDeploy(zkAppInstance, zkAppPrivateKey, deployerAccount);
+    const txn = await Mina.transaction(deployerAccount, () => {
+      zkAppInstance.update();
+      zkAppInstance.sign(zkAppPrivateKey);
+    });
+    await txn.send().wait();
+
+    const condition = zkAppInstance.lessThan5();
+
+    expect(condition).toEqual(true);
+
+    const txn2 = await Mina.transaction(deployerAccount, () => {
+      zkAppInstance.update();
+      zkAppInstance.sign(zkAppPrivateKey);
+    });
+    await txn2.send().wait();
+
+    const condition2 = zkAppInstance.lessThan5();
+
+    expect(condition2).toEqual(false);
+  });
 });
